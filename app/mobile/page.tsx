@@ -6,18 +6,11 @@ import ColorPanel from "../components/layout/ColorPanel";
 import LightDetailPanel from "../components/layout/LightDetailPanel";
 import CreateLightModal from "../components/modal/CreateLightModal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Group, Light, Control } from "../components/types/dmx";
+import { useDmxSceneContext } from "../components/context/DmxSceneProvider";
 
 export default function MobilePage() {
+  const scene = useDmxSceneContext(); // ✅ Shared global DMX scene logic
   const [activeTab, setActiveTab] = useState("groups");
-
-  // You can import or reuse your state logic here — or use a context if you split it.
-  // For this example, we’ll just stub minimal props.
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [selectedScope, setSelectedScope] = useState<
-    { type: "master" } | { type: "group"; id: string } | { type: "light"; id: string }
-  >({ type: "master" });
-  const [masterBrightness, setMasterBrightness] = useState(50);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col p-4 gap-4 pb-[env(safe-area-inset-bottom)]">
@@ -26,15 +19,15 @@ export default function MobilePage() {
         <h1 className="text-lg font-semibold">DMX Controller</h1>
       </header>
 
-      {/* Brightness and global controls */}
+      {/* Brightness + All On/Off */}
       <BrightnessControl
-        brightness={masterBrightness}
-        onBrightnessChange={(e) => setMasterBrightness(Number(e.target.value))}
-        allOn={() => console.log("All On")}
-        allOff={() => console.log("All Off")}
+        brightness={scene.masterBrightness}
+        onBrightnessChange={scene.handleBrightnessChange}
+        allOn={scene.allOn}
+        allOff={scene.allOff}
       />
 
-      {/* Tabs for navigation */}
+      {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="groups">Groups</TabsTrigger>
@@ -42,67 +35,94 @@ export default function MobilePage() {
           <TabsTrigger value="details">Details</TabsTrigger>
         </TabsList>
 
-        {/* Groups/Lights list */}
+        {/* ────────────────────────────────
+            GROUPS TAB
+        ──────────────────────────────── */}
         <TabsContent value="groups" className="mt-4">
           <GroupList
-            groups={groups}
-            selectedScope={selectedScope}
-            setSelectedScope={setSelectedScope}
-            addLightGlobal={() => {}}
-            updateLight={() => {}}
-            deleteLightGlobal={() => {}}
-            deleteGroup={() => {}}
-            openCreateGroup={() => {}}
+            groups={scene.groups}
+            selectedScope={scene.selectedScope}
+            setSelectedScope={scene.setSelectedScope}
+            addLightGlobal={scene.addLightGlobal}
+            updateLight={scene.updateLight}
+            deleteLightGlobal={scene.deleteLightGlobal}
+            deleteGroup={scene.deleteGroup}
+            openCreateGroup={() => {
+              const colorOptions = [
+                "indigo",
+                "green",
+                "red",
+                "amber",
+                "blue",
+                "purple",
+                "pink",
+                "teal",
+              ];
+              scene.setGroups((prev) => {
+                const id = `g${prev.length + 1}`;
+                const color = colorOptions[prev.length % colorOptions.length];
+                return [
+                  ...prev,
+                  { id, name: `Group ${prev.length + 1}`, color, lights: [] },
+                ];
+              });
+            }}
           />
         </TabsContent>
 
-        {/* Color control */}
+        {/* ────────────────────────────────
+            COLOR TAB
+        ──────────────────────────────── */}
         <TabsContent value="color" className="mt-4">
           <ColorPanel
-            selectedColor="#ffffff"
-            handleColorPicker={() => {}}
-            rgb={{ r: 255, g: 255, b: 255 }}
-            handleRgbChange={() => {}}
-            presets={[]}
-            applyPreset={() => {}}
-            savePreset={() => {}}
-            deletePreset={() => {}}
+            selectedColor={scene.selectedColor}
+            handleColorPicker={scene.handleColorPicker}
+            rgb={scene.rgb}
+            handleRgbChange={scene.handleRgbChange}
+            presets={scene.presets}
+            applyPreset={scene.applyPreset}
+            savePreset={scene.savePreset}
+            deletePreset={scene.deletePreset}
           />
         </TabsContent>
 
-        {/* Light details */}
+        {/* ────────────────────────────────
+            DETAILS TAB
+        ──────────────────────────────── */}
         <TabsContent value="details" className="mt-4">
           <LightDetailPanel
-            selectedScope={selectedScope}
-            groups={groups}
-            allLights={[]}
-            setRgb={() => {}}
-            selectedColor="#ffffff"
-            setSelectedColor={() => {}}
-            groupControlNames={[]}
-            setGroupControlValue={() => {}}
-            setGroups={setGroups}
-            updateLight={() => {}}
-            setSelectedScope={setSelectedScope}
-            sendToDmx={() => console.log("Send DMX")}
+            selectedScope={scene.selectedScope}
+            groups={scene.groups}
+            allLights={scene.allLights}
+            setRgb={scene.setRgb}
+            selectedColor={scene.selectedColor}
+            setSelectedColor={scene.setSelectedColor}
+            groupControlNames={scene.groupControlNames}
+            setGroupControlValue={scene.setGroupControlValue}
+            setGroups={scene.setGroups}
+            updateLight={scene.updateLight}
+            setSelectedScope={scene.setSelectedScope}
+            sendToDmx={scene.sendToDmx}
           />
         </TabsContent>
       </Tabs>
 
-      {/* Optional modal */}
+      {/* ────────────────────────────────
+          LIGHT CREATION MODAL
+      ──────────────────────────────── */}
       <CreateLightModal
-        open={false}
-        onClose={() => {}}
-        groups={groups}
-        name=""
-        dmxAddress={1}
-        controls={[]}
-        groupId={null}
-        setName={() => {}}
-        setDmxAddress={() => {}}
-        setGroupId={() => {}}
-        setControls={() => {}}
-        onCreate={() => {}}
+        open={scene.modalOpen}
+        onClose={() => scene.setModalOpen(false)}
+        groups={scene.groups}
+        name={scene.modalName}
+        dmxAddress={scene.modalDmxAddress}
+        controls={scene.modalControls}
+        groupId={scene.modalGroupId}
+        setName={scene.setModalName}
+        setDmxAddress={scene.setModalDmxAddress}
+        setGroupId={scene.setModalGroupId}
+        setControls={scene.setModalControls}
+        onCreate={scene.createLightFromModal}
       />
     </div>
   );
