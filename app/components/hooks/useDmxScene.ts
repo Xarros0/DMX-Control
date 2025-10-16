@@ -50,7 +50,7 @@ export default function useDMXScene() {
     { id: "p2", name: "Static Color", type: "static", color: "#ffffff" },
   ]);
 
-  const [masterBrightness, setMasterBrightness] = useState(50);
+  const [masterBrightness, setMasterBrightness] = useState(100);
   const [selectedColor, setSelectedColor] = useState("#ffffff");
   const [rgb, setRgb] = useState({ r: 255, g: 255, b: 255 });
   const router = useRouter();
