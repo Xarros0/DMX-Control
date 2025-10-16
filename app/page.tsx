@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import BrightnessControl from "./components/layout/BrightnessControl";
 import GroupList from "./components/layout/GroupList";
@@ -59,6 +60,7 @@ export default function Home() {
   const [masterBrightness, setMasterBrightness] = useState(50);
   const [selectedColor, setSelectedColor] = useState("#ffffff");
   const [rgb, setRgb] = useState({ r: 255, g: 255, b: 255 });
+  const router = useRouter();
 
   // ────────────────────────────────
   // MODAL STATE
@@ -107,7 +109,9 @@ export default function Home() {
     const group = groups.find((g) => g.id === groupId);
     if (!group) return 1;
     let maxId = 0;
-    const re = new RegExp(`^${groupId.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}-(\\d+)$`);
+    const re = new RegExp(
+      `^${groupId.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}-(\\d+)$`
+    );
     for (const l of group.lights) {
       const m = re.exec(l.id);
       if (m) {
@@ -309,7 +313,9 @@ export default function Home() {
     setModalGroupId(targetGroupId);
     setModalDmxAddress(1);
     setModalControls([...defaultChannels]);
-    const nextNum = targetGroupId ? getNextLightNumberForGroup(targetGroupId) : 1;
+    const nextNum = targetGroupId
+      ? getNextLightNumberForGroup(targetGroupId)
+      : 1;
     setModalName(`Light ${nextNum}`);
     setModalOpen(true);
   };
@@ -491,12 +497,6 @@ export default function Home() {
           .join("")}`
       );
     }
-
-    if (selectedScope.type === "master") {
-      // master default white
-      setRgb({ r: 255, g: 255, b: 255 });
-      setSelectedColor("#ffffff");
-    }
   }, [selectedScope, groups, allLights]);
 
   // Save to localStorage
@@ -505,6 +505,12 @@ export default function Home() {
       localStorage.setItem("dmx_scene_v1", JSON.stringify(groups));
     } catch {}
   }, [groups]);
+
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      router.push("/mobile");
+    }
+  }, []);
 
   // ────────────────────────────────
   // RENDER
