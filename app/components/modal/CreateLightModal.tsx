@@ -36,10 +36,10 @@ export default function CreateLightModal({
   const [showNewChannelModal, setShowNewChannelModal] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
 
-  // ✅ Global channel name manager
+  // Global channel name manager
   const { channelNames, addChannelName } = useChannelNames();
 
-  // ✅ Prefill new lights with global defaults if empty
+  // Prefill new lights with global defaults if empty
   useEffect(() => {
     if (open && controls.length === 0) {
       const defaultControls: Control[] = channelNames.map((name) => ({
@@ -50,7 +50,7 @@ export default function CreateLightModal({
     }
   }, [open]); // only when modal opens
 
-  // ✅ Collect all unique channel names across existing lights
+  // Collect all unique channel names across existing lights
   const existingChannelNames = useMemo(() => {
     const names = new Set<string>(channelNames);
     groups.forEach((g) =>
@@ -88,10 +88,10 @@ export default function CreateLightModal({
     const trimmed = newChannelName.trim();
     if (!trimmed) return;
 
-    // ✅ Save globally
+    // Save globally
     addChannelName(trimmed);
 
-    // ✅ Update last channel slot with the new name
+    // Update last channel slot with the new name
     setControls((prev) => {
       const last = [...prev];
       if (last.length > 0) {

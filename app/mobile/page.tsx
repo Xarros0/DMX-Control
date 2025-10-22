@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useDmxSceneContext } from "../components/context/DmxSceneProvider";
 
 export default function MobilePage() {
-  const scene = useDmxSceneContext(); // ✅ Shared global DMX scene logic
+  const scene = useDmxSceneContext(); // Shared global DMX scene logic
   const [activeTab, setActiveTab] = useState("groups");
 
   return (
